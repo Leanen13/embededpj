@@ -1,17 +1,16 @@
-MODULE_NAME = dot_driver
-APP_NAME = test_dot
-KDIR = /root/rasp/linux
+#Makefile for a basic kernel module
+obj-m := fpga_dot_driver.o
+KDIR :=/root/raspberry/linux
 TOOLCHAIN = arm-linux-gnueabihf-
 CC = $(TOOLCHAIN)gcc
 TARGET = arm
-PWD	:= $(shell pwd)
-obj-m	:= $(MODULE_NAME).o
-
+PWD :=$(shell pwd)
+APP := fpga_test_dot
+all: driver app
+#all: driver
 all: app driver
-
 driver:
 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) ARCH=$(TARGET) CROSS_COMPILE=$(TOOLCHAIN) modules
-
 app:
 	$(CC) -o $(APP_NAME) $(APP_NAME).c
 
@@ -24,7 +23,7 @@ clean:
 	rm -f *.o
 	rm -f *.mod.*
 	rm -f .$(MODULE_NAME).*
-	rm -f $(APP_NAME)
+	rm -f $(APP_NAME)	
 	rm -f modules.order
 	rm -f Module.symvers
 	rm -rf .tmp_versions
