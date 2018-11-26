@@ -1,12 +1,12 @@
 #Makefile for a basic kernel module
-obj-m := fpga_dot_driver.o
+MODULE_NAME = dot_driver
+APP_NAME = test_dot
+obj-m := dot_driver.o
 KDIR :=/root/raspberry/linux
 TOOLCHAIN = arm-linux-gnueabihf-
 CC = $(TOOLCHAIN)gcc
 TARGET = arm
 PWD :=$(shell pwd)
-APP := fpga_test_dot
-all: driver app
 #all: driver
 all: app driver
 driver:

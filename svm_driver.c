@@ -72,21 +72,30 @@ static int svm_write(struct file *mfile, const char *gdata, size_t length, loff_
 	if (tmp_buf == 'c'){
    	 while(1){
 		cnt++;
-		begin = 15;
-  		space = pwm_range - begin;
-   		if (begin != 0)
-     			*(svm + 7) |= (0x1 << GPIO_OUT); //output set 1
-  			msleep(1);
-		if (space != 0)
-    			*(svm + 10) |= (0x1 << GPIO_OUT); //output set 0
-    			msleep(1);
+		*(svm + 7) |= (0x1 << GPIO_OUT); //output set 1
+  		msleep(2);
+ 		*(svm + 10) |= (0x1 << GPIO_OUT); //output set 0
+    		msleep(2);
 		
-		if(cnt==1000)
+		if(cnt==1){
+			cnt=0;
 			break;
+		}
   	}
   }
 	else if(tmp_buf == 'r')
-   		begin = 24;
+   		while(1){
+			cnt++;
+			*(svm+10) |=0 (0x0 << GPIO_OUT);
+			msleep(2);
+			*(svm+7) |= (0x0 << GPIO_OUT);
+			msleep(2);
+		if(cnt==2){
+			cnt=0;
+			break;
+		}
+		}
+			
  	else if(tmp_buf == 'l')
 		begin = 5;
  	else if(tmp_buf == 'q')
