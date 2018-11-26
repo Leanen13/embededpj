@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 	fd = open(SVM_FILE_NAME, O_RDWR);
 	if (fd < 0)
 	{
-		fprintf(stderr, "Can't open %s\n", LED_FILE_NAME);
+		fprintf(stderr, "Can't open %s\n", SVM_FILE_NAME);
 		return -1;
 	}
 
