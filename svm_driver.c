@@ -7,8 +7,6 @@
 #include <linux/gpio.h>
 #include <mach/platform.h>
 #include <linux/io.h>
-#include <sys/time.h>
-#include <unistd.h>
 
 #define	SVM_MAJOR	224
 #define	SVM_NAME	"SVM_DRIVER"
@@ -21,37 +19,6 @@ static volatile int pwm_range
 char svm_usage = 0;
 static void *svm_map;
 volatile unsigned *svm;
-
-void delayMicrosecondsHard (unsigned int howLong)
-  {
-    struct timeval tNow, tLong, tEnd ;
-
-    gettimeofday (&tNow, NULL) ;
-    tLong.tv_sec  = howLong / 1000000 ;
-    tLong.tv_usec = howLong % 1000000 ;
-    timeradd (&tNow, &tLong, &tEnd) ;
-
-    while (timercmp (&tNow, &tEnd, <))
-      gettimeofday (&tNow, NULL) ;
-  }
-
-void delayMicroseconds (unsigned int howLong)
-{
-  struct timespec sleeper ;
-  unsigned int uSecs = howLong % 1000000 ;
-  unsigned int wSecs = howLong / 1000000 ;
-
-  if (howLong ==   0)
-    return ;
-  else if (howLong  < 100)
-    delayMicrosecondsHard (howLong) ;
-  else
-  {
-    sleeper.tv_sec  = wSecs ;
-    sleeper.tv_nsec = (long)(uSecs * 1000L) ;
-    nanosleep (&sleeper, NULL) ;
-  }
-}
 
 static struct file_operations svm_fops =
 {
@@ -113,17 +80,17 @@ static int svm_write(struct file *mfile, const char *gdata, size_t length, loff_
 
 	// Control svm
 	if (tmp_buf == 'c'){
-    while(1){
+   	 while(1){
 		begin = 15;
-    space = pwm_range - begin;
-    if (begin != 0)
-      *(svm + 7) |= (0x1 << GPIO_OUT); //output set 1
-    delayMicroseconds (begin * 100) ;
+  		space = pwm_range - begin;
+   		if (begin != 0)
+     			*(svm + 7) |= (0x1 << GPIO_OUT); //output set 1
+  		 delay(1);
 
-    if (space != 0)
-      *(svm + 10) |= (0x1 << GPIO_OUT); //output set 0
-    delayMicroseconds (space * 100) ;
-  }
+  		if (space != 0)
+    			*(svm + 10) |= (0x1 << GPIO_OUT); //output set 0
+    		delay(1);
+  	}
   }
 	else if(tmp_buf == 'r')
     begin = 24;
