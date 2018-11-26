@@ -23,8 +23,8 @@ int main(int argc, char **argv)
 	while (1)
 	{
 		fputs("select c, r, l, q : ",stdout);
-    scanf("%c",&data)
-    getchar();
+   		scanf("%c",&data);
+ 		getchar();
 		write(fd, &data, sizeof(char));
 	}
 	close(fd);
