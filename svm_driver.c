@@ -7,6 +7,8 @@
 #include <linux/gpio.h>
 #include <mach/platform.h>
 #include <linux/io.h>
+#include <linux/time.h>
+#include <linux/delay.h>
 
 #define	SVM_MAJOR	224
 #define	SVM_NAME	"SVM_DRIVER"
@@ -47,8 +49,6 @@ static int svm_release(struct inode *minode, struct file *mfile)
 	if (svm)
 		iounmap(svm);
 
- pthread_cancel (threads);
-
 	return 0;
 }
 
@@ -56,8 +56,6 @@ static int svm_write(struct file *mfile, const char *gdata, size_t length, loff_
 {
 	char tmp_buf;
 	char result;
-  pthread_t myThread;
-  int *pin;
 
 	result = copy_from_user(&tmp_buf, gdata, length);
 	if (result < 0)
@@ -68,18 +66,23 @@ static int svm_write(struct file *mfile, const char *gdata, size_t length, loff_
 
 	printk("char from app : %c\n", tmp_buf);
 
+	int space;
+	int cnt=0;
 	// Control svm
 	if (tmp_buf == 'c'){
    	 while(1){
+		cnt++;
 		begin = 15;
   		space = pwm_range - begin;
    		if (begin != 0)
      			*(svm + 7) |= (0x1 << GPIO_OUT); //output set 1
-  		 delay(1);
-
-  		if (space != 0)
+  			msleep(1);
+		if (space != 0)
     			*(svm + 10) |= (0x1 << GPIO_OUT); //output set 0
-    		delay(1);
+    			msleep(1);
+		
+		if(cnt==1000)
+			break;
   	}
   }
 	else if(tmp_buf == 'r')

@@ -1,0 +1,1 @@
+cmd_/root/raspberry/embededpj/svm_driver.ko := arm-linux-gnueabihf-ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /root/raspberry/embededpj/svm_driver.ko /root/raspberry/embededpj/svm_driver.o /root/raspberry/embededpj/svm_driver.mod.o
