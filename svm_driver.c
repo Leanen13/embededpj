@@ -13,20 +13,12 @@
 #define	GPIO_SIZE	256
 #define GPIO_OUT 12
 
-static volatile int begin
-static volatile int pwm_range
+static volatile int begin=0;
+static volatile int pwm_range=200;
 
 char svm_usage = 0;
 static void *svm_map;
 volatile unsigned *svm;
-
-static struct file_operations svm_fops =
-{
-	.owner	= THIS_MODULE,
-	.open	= svm_open,
-	.release	= svm_release,
-	.write	= svm_write,
-};
 
 static int svm_open(struct inode *minode, struct file *mfile)
 {
@@ -41,8 +33,6 @@ static int svm_open(struct inode *minode, struct file *mfile)
 		iounmap(svm_map);
 		return -EBUSY;
 	}
-
-  pwm_rage=200;
 
 	svm = (volatile unsigned int *)svm_map;
 	*(svm + 1) &= ~(0x7 << (3 * GPIO_OUT%10)); //clear
@@ -93,14 +83,22 @@ static int svm_write(struct file *mfile, const char *gdata, size_t length, loff_
   	}
   }
 	else if(tmp_buf == 'r')
-    begin = 24;
-  else if(tmp_buf == 'l')
+   		begin = 24;
+ 	else if(tmp_buf == 'l')
 		begin = 5;
-  else if(tmp_buf == 'q')
-    return 0;
+ 	else if(tmp_buf == 'q')
+ 		return 0;
 
 	return length;
 }
+
+static struct file_operations svm_fops =
+{
+	.owner	= THIS_MODULE,
+	.open	= svm_open,
+	.release	= svm_release,
+	.write	= svm_write,
+};
 
 static int svm_init(void)
 {
