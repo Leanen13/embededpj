@@ -7,10 +7,6 @@
 #include <linux/gpio.h>
 #include <mach/platform.h>
 #include <linux/io.h>
-
-#include <stdio.h>
-#include <malloc.h>
-#include <pthread.h>
 #include <sys/time.h>
 #include <unistd.h>
 
@@ -21,76 +17,23 @@
 
 static volatile int begin
 static volatile int pwm_range
-static volatile pthread_t thread
 
 char svm_usage = 0;
 static void *svm_map;
 volatile unsigned *svm;
 
-static void *PwmThread (void *arg) // set Thread
-{
-  struct sched_param param ;
-
-  param.sched_priority = sched_get_priority_max (SCHED_RR) ;
-  pthread_setschedparam (pthread_self (), SCHED_RR, &param) ;
-
-  pin = *((int *)arg) ;
-  free (arg) ;
-
-  pin = GPIO_OUT;
-  const int pri = 90;
-  struct sched_param sched ;
-
-  memset (&sched, 0, sizeof(sched)) ;
-
-  if (pri > sched_get_priority_max (SCHED_RR))
-    sched.sched_priority = sched_get_priority_max (SCHED_RR) ;
-  else
-    sched.sched_priority = pri ;
-
-  sched_setscheduler (0, SCHED_RR, &sched) ;
-
-  for (;;)
+void delayMicrosecondsHard (unsigned int howLong)
   {
-    space = range - begin ;
+    struct timeval tNow, tLong, tEnd ;
 
-    if (begin != 0)
-      *(svm + 7) |= (0x1 << GPIO_OUT); //output set 1
-    delayMicroseconds (begin * 100) ;
+    gettimeofday (&tNow, NULL) ;
+    tLong.tv_sec  = howLong / 1000000 ;
+    tLong.tv_usec = howLong % 1000000 ;
+    timeradd (&tNow, &tLong, &tEnd) ;
 
-    if (space != 0)
-      *(svm + 10) |= (0x1 << GPIO_OUT); //output set 0
-    delayMicroseconds (space * 100) ;
+    while (timercmp (&tNow, &tEnd, <))
+      gettimeofday (&tNow, NULL) ;
   }
-
-  return NULL ;
-}
-
-int PwmCreate (int pin, int initialValue, int pwmRange)
-{
-  int res ;
-  pthread_t myThread ;
-  int *passPin ;
-
-  passPin = malloc (sizeof (*passPin)) ;
-  if (passPin == NULL)
-    return -1 ;
-
-  *(svm + 10) |= (0x1 << GPIO_OUT); //output set 0
-
-  begin = initialValue ;
-  pwm_range = pwmRange ;
-
-  *passPin = pin ;
-  res      = pthread_create (&myThread, NULL, softPwmThread, (void *)passPin) ;
-
-  while (newPin != -1)
-    delay (1) ;
-
-  thread = myThread ;
-
-  return res ;
-}
 
 void delayMicroseconds (unsigned int howLong)
 {
@@ -132,12 +75,11 @@ static int svm_open(struct inode *minode, struct file *mfile)
 		return -EBUSY;
 	}
 
+  pwm_rage=200;
+
 	svm = (volatile unsigned int *)svm_map;
 	*(svm + 1) &= ~(0x7 << (3 * GPIO_OUT%10)); //clear
 	*(svm + 1) |= (0x1 << (3 * GPIO_OUT%10)); //outputmode
-
-  PwmCreate(GPIO_OUT,0,200);
-
 
 	return 0;
 }
@@ -169,9 +111,20 @@ static int svm_write(struct file *mfile, const char *gdata, size_t length, loff_
 
 	printk("char from app : %c\n", tmp_buf);
 
-	// Control LED
-	if (tmp_buf == 'c')
+	// Control svm
+	if (tmp_buf == 'c'){
+    while(1){
 		begin = 15;
+    space = pwm_range - begin;
+    if (begin != 0)
+      *(svm + 7) |= (0x1 << GPIO_OUT); //output set 1
+    delayMicroseconds (begin * 100) ;
+
+    if (space != 0)
+      *(svm + 10) |= (0x1 << GPIO_OUT); //output set 0
+    delayMicroseconds (space * 100) ;
+  }
+  }
 	else if(tmp_buf == 'r')
     begin = 24;
   else if(tmp_buf == 'l')
