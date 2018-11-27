@@ -42,7 +42,7 @@ static int dot_open(struct inode *minode, struct file *mfile){
 		}
 		else
 		{
-		        *(dot + 1) &= ~(0x07 << (3 * index %10));
+		        *(dot + 1) &= ~(0x07 << (3 * index%10));
 			*(dot + 1) |= (0x01 << (3 * index%10));
 		}
 	}
@@ -57,8 +57,8 @@ static int dot_release(struct inode *minode, struct file *mfile) {
 }
 static int dot_write(struct file *mfile, const char *gdata, size_t length, loff_t *off_what)
 {
-	char tmp_buf[9][8]={0};
-	int result;
+	char tmp_buf[9][9]={0};
+	int result,i,j;
 	result = copy_from_user(&tmp_buf, gdata, length);
 	if (result < 0)
 	{
@@ -66,17 +66,18 @@ static int dot_write(struct file *mfile, const char *gdata, size_t length, loff_
 		return result;
 	}
 
-	for(int i=0;i<9;i++){
-		for(int j=0;j<8;j++){
-			printk("data from user: %x\n",tmp_buf[i][j]);
-			*(dot+10)=(0xFF<<2);
-			*(dot+7) =(tmp_buf[i][j]<<2);
+	i=0;
+	j=0;
 
-			*(dot+10)=(0xFF<<10);
-			*(dot+7)=(tmp_buf[i][j]<<10);
-		}
+
+	printk("data from user: %x\n",tmp_buf[i][j]);
+	*(dot+7)=(0xFF<<10);
+	*(dot+10)=(0xFF<<2);
 	
-	}
+			
+	*(dot+10)=(0xFF <<10);
+	*(dot+10)=(0xFF <<2);
+
 	
 	return length;
 }

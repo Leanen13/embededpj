@@ -66,40 +66,39 @@ static int svm_write(struct file *mfile, const char *gdata, size_t length, loff_
 
 	printk("char from app : %c\n", tmp_buf);
 
-	int space;
+	int i=0;
 	int cnt=0;
 	// Control svm
 	if (tmp_buf == 'c'){
-   	 while(1){
-		cnt++;
+  		for(i=0;i<5;i++){ 
 		*(svm + 7) |= (0x1 << GPIO_OUT); //output set 1
-  		msleep(2);
+  		usleep_range(1500,1500);
  		*(svm + 10) |= (0x1 << GPIO_OUT); //output set 0
-    		msleep(2);
-		
-		if(cnt==1){
-			cnt=0;
-			break;
+    		usleep_range(20000,20000);
 		}
-  	}
-  }
-	else if(tmp_buf == 'r')
-   		while(1){
-			cnt++;
-			*(svm+10) |=0 (0x0 << GPIO_OUT);
-			msleep(2);
-			*(svm+7) |= (0x0 << GPIO_OUT);
-			msleep(2);
-		if(cnt==2){
-			cnt=0;
-			break;
+	  }
+	else if(tmp_buf == 'l'){
+		for(i=0;i<5;i++){
+   		*(svm + 7) |= (0x1 << GPIO_OUT);
+		usleep_range(2300,2300);		
+		*(svm + 10) |= (0x1 <<GPIO_OUT);
+		usleep_range(20000,20000);
 		}
-		}
+	}
 			
- 	else if(tmp_buf == 'l')
-		begin = 5;
+ 	else if(tmp_buf == 'r'){
+		for(i=0;i<5;i++){
+		*(svm +7) |= (0x01 << GPIO_OUT);
+		usleep_range(300,300);
+		*(svm +10) |= (0x01 << GPIO_OUT);
+		usleep_range(20000,20000);
+	
+		}
+	}
  	else if(tmp_buf == 'q')
  		return 0;
+	else
+		;
 
 	return length;
 }

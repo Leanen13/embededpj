@@ -1,11 +1,11 @@
-MODULE_NAME = svm_driver
-APP_NAME = test_svm
+MODULE_NAME = dot_driver
+APP_NAME = test_driver
 KDIR = /root/raspberry/linux
 TOOLCHAIN = arm-linux-gnueabihf-
 CC = $(TOOLCHAIN)gcc
 TARGET = arm
-PWD	:= $(shell pwd)
-obj-m	:= $(MODULE_NAME).o
+PWD     := $(shell pwd)
+obj-m   := $(MODULE_NAME).o
 
 all: app driver
 
@@ -24,8 +24,9 @@ clean:
 	rm -f *.o
 	rm -f *.mod.*
 	rm -f .$(MODULE_NAME).*
-	rm -f $(APP_NAME)	
+	rm -f $(APP_NAME)       
 	rm -f modules.order
 	rm -f Module.symvers
 	rm -rf .tmp_versions
+
 

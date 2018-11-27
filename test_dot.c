@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 	int	i,j = 0;
 	int	dot_fd;
 	char	data;
-	char	dot_values[9][8]  ={{UON,UON,UON,UON,UON,UON,UON,UFF},
+	char	dot_values[9][9]  ={{UON,UON,UON,UON,UON,UON,UON,UFF},
 				     {UON,UON,UON,UON,UON,UON,UFF,UFF},
 			             {UON,UON,UON,UON,UON,UFF,UFF,UFF},
 			             {UON,UON,UON,UON,UFF,UFF,UFF,UFF},
@@ -30,12 +30,13 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Can't open %s\n", DOT_FILE_NAME);
 		return -1;
 	}
-
-	while (1)
-	{
-
-		write(dot_fd, &dot_values[2][2], sizeof(char));
-		
+	int c=0;
+	while(1){
+		write(dot_fd, &dot_values, sizeof(char));
+		sleep(1);
+		c++;
+	if(c==10)
+		break;
 	}
 
 	close(dot_fd);
