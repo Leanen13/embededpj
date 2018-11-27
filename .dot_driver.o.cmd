@@ -588,6 +588,8 @@ deps_/root/raspberry/embededpj/dot_driver.o := \
   include/linux/gpio/consumer.h \
     $(wildcard include/config/gpio/sysfs.h) \
   arch/arm/mach-bcm2709/include/mach/platform.h \
+  include/linux/delay.h \
+  arch/arm/include/asm/delay.h \
 
 /root/raspberry/embededpj/dot_driver.o: $(deps_/root/raspberry/embededpj/dot_driver.o)
 

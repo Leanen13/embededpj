@@ -1,5 +1,5 @@
-MODULE_NAME = svm_driver
-APP_NAME = test_svm
+MODULE_NAME = dot_driver
+APP_NAME = test_dot
 KDIR = /root/raspberry/linux
 TOOLCHAIN = arm-linux-gnueabihf-
 CC = $(TOOLCHAIN)gcc

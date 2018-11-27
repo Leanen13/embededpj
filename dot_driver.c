@@ -6,11 +6,14 @@
 #include <linux/slab.h> 
 #include <linux/gpio.h>
 #include <mach/platform.h>
+#include <linux/time.h>
+#include <linux/delay.h>
 #include <linux/io.h>
 
 #define	DOT_MAJOR	262
 #define	DOT_NAME	"DOT_DRIVER"
-
+#define GPIO_OUT1	10
+#define GPIO_OUT2	20
 #define	GPIO_SIZE	256
 static int dot_usage = 0;
 static void *dot_map;
@@ -32,19 +35,14 @@ static int dot_open(struct inode *minode, struct file *mfile){
 		return -EBUSY;
 	}
 
+	int i=0;
 	dot = (volatile unsigned int *)dot_map;
-	for (index = 2; index < 18; index++)
+	for (i=0; index < 8; i++)
 	{
-		if(index < 10)
-		{
-			*(dot + 0) &= ~(0x07 << (3 * index));
-			*(dot + 0) |= (0x01 << (3 * index));
-		}
-		else
-		{
-		        *(dot + 1) &= ~(0x07 << (3 * index%10));
-			*(dot + 1) |= (0x01 << (3 * index%10));
-		}
+		*(dot + 1) &= ~(0x07 << (3 * (GPIO_OUT1+i)));
+		*(dot + 1) |= (0x01 << (3 * (GPIO_OUT1+i)));
+		*(dot + 2) &= ~(0x07 << (3 * (GPIO_OUT2+i)));
+		*(dot + 2) |= (0x01 << (3 * (GPIO_OUT2+i)));
 	}
 	return 0;
 }
@@ -65,18 +63,16 @@ static int dot_write(struct file *mfile, const char *gdata, size_t length, loff_
 		printk("Error: copy from user");
 		return result;
 	}
-
-	i=0;
-	j=0;
-
+		
 
 	printk("data from user: %x\n",tmp_buf[i][j]);
+	*(dot+7)=(0xFF<<20);
 	*(dot+7)=(0xFF<<10);
-	*(dot+10)=(0xFF<<2);
-	
-			
+	*(dot+10)=(0x0<<10);
+	msleep(5000);	
+
+	*(dot+10)=(0xFF <<20);
 	*(dot+10)=(0xFF <<10);
-	*(dot+10)=(0xFF <<2);
 
 	
 	return length;

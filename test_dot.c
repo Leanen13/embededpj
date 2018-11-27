@@ -30,14 +30,14 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Can't open %s\n", DOT_FILE_NAME);
 		return -1;
 	}
-	int c=0;
-	while(1){
-		write(dot_fd, &dot_values, sizeof(char));
-		sleep(1);
-		c++;
-	if(c==10)
-		break;
-	}
+	
+
+	write(dot_fd, &dot_values, sizeof(char));
+
+
+
+
+	
 
 	close(dot_fd);
 	return 0;
