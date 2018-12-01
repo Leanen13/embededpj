@@ -1,11 +1,13 @@
-MODULE_NAME = dot_driver
-APP_NAME = test_dot
+MODULE_NAME = svm_driver
+MODULE_NAME2 = dot_driver
+APP_NAME = test_svm
+APP_NAME2 = test_dot
 KDIR = /root/raspberry/linux
 TOOLCHAIN = arm-linux-gnueabihf-
 CC = $(TOOLCHAIN)gcc
 TARGET = arm
 PWD	:= $(shell pwd)
-obj-m	:= $(MODULE_NAME).o
+obj-m	:= $(MODULE_NAME).o $(MODULE_NAME2).o
 
 all: app driver
 
@@ -14,10 +16,15 @@ driver:
 
 app:
 	$(CC) -o $(APP_NAME) $(APP_NAME).c
+	$(CC) -o $(APP_NAME2) $(APP_NAME2).c
+
+
 
 install:
 	cp -f $(MODULE_NAME).ko /root/raspberry/nfs
 	cp -f $(APP_NAME) /root/raspberry/nfs
+	cp -f $(MODULE_NAME2).ko /root/raspberry/nfs
+	cp -f $(APP_NAME2) /root/raspberry/nfs
 
 clean:
 	rm -f *.ko

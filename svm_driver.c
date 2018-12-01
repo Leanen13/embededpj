@@ -13,10 +13,7 @@
 #define	SVM_MAJOR	224
 #define	SVM_NAME	"SVM_DRIVER"
 #define	GPIO_SIZE	256
-#define GPIO_OUT 12
-
-static volatile int begin=0;
-static volatile int pwm_range=200;
+#define GPIO_OUT 2
 
 char svm_usage = 0;
 static void *svm_map;
@@ -37,8 +34,8 @@ static int svm_open(struct inode *minode, struct file *mfile)
 	}
 
 	svm = (volatile unsigned int *)svm_map;
-	*(svm + 1) &= ~(0x7 << (3 * GPIO_OUT%10)); //clear
-	*(svm + 1) |= (0x1 << (3 * GPIO_OUT%10)); //outputmode
+	*(svm + 0) &= ~(0x7 << (3 * 2)); //clear
+	*(svm + 0) |= (0x1 << (3 * 2)); //outputmode
 
 	return 0;
 }
@@ -67,40 +64,38 @@ static int svm_write(struct file *mfile, const char *gdata, size_t length, loff_
 	printk("char from app : %c\n", tmp_buf);
 
 	int i=0;
-	int cnt=0;
 	// Control svm
 	if (tmp_buf == 'c'){
-  		for(i=0;i<5;i++){ 
+  		for(i=0;i<4;i++){
 		*(svm + 7) |= (0x1 << GPIO_OUT); //output set 1
   		usleep_range(1500,1500);
  		*(svm + 10) |= (0x1 << GPIO_OUT); //output set 0
-    		usleep_range(20000,20000);
+    		usleep_range(18500,18500);
 		}
+		
 	  }
 	else if(tmp_buf == 'l'){
-		for(i=0;i<5;i++){
+		for(i=0;i<4;i++){
    		*(svm + 7) |= (0x1 << GPIO_OUT);
-		usleep_range(2300,2300);		
+		usleep_range(2400,2400);		
 		*(svm + 10) |= (0x1 <<GPIO_OUT);
-		usleep_range(20000,20000);
+		usleep_range(18000,18000);
 		}
 	}
 			
  	else if(tmp_buf == 'r'){
-		for(i=0;i<5;i++){
+		for(i=0;i<4;i++){
 		*(svm +7) |= (0x01 << GPIO_OUT);
 		usleep_range(300,300);
 		*(svm +10) |= (0x01 << GPIO_OUT);
-		usleep_range(20000,20000);
-	
+		usleep_range(19000,19000);
 		}
 	}
  	else if(tmp_buf == 'q')
- 		return 0;
+ 		return length;
 	else
 		;
-
-	return length;
+	
 }
 
 static struct file_operations svm_fops =
