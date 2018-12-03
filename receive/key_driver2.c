@@ -28,7 +28,6 @@ DECLARE_WAIT_QUEUE_HEAD(waitqueue);
 static irqreturn_t ind_interrupt_handler(int irq, void *pdata)
 {
 	int tmp_key;
-
 	tmp_key = (*(key2 + 13) & (1 << 3)) == 0 ? 0 : 1;
 	
 	if (tmp_key == 0)

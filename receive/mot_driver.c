@@ -7,7 +7,7 @@
 #include <linux/gpio.h>
 #include <mach/platform.h>
 #include <linux/io.h>
-
+#include <linux/delay.h>
 #define MOTOR_MAJOR       219
 #define MOTOR_NAME        "MOT_DRIVER"
 
@@ -60,10 +60,8 @@ static int motor_write(struct file *mfile, const char *gdata, size_t length, lof
 
 		printk("data from app : %d\n", tmp_buf);
 
-		if( tmp_buf ==1)
-				*(motor + 7) |= (0x1 << 9); //motor on
-		if( tmp_buf ==0)
-                *(motor + 10) |= (0x1 << 9); //motor off
+		if( tmp_buf ==1) { *(motor + 7) |= (0x1 << 9);} //motor on
+		if( tmp_buf ==0) { *(motor + 10) |= (0x1 << 9);} //motor off
                 
 
         return length;

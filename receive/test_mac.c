@@ -27,11 +27,12 @@ void *thread_sens3(void *arg);
 int		mac_state = 0;
 int		EA500 = 0, EA100 = 0, EA50 = 0;
 int		key_fd, key2_fd, key3_fd, key4_fd;
+int		key_state=0;
 int main()
 {
-	int		key1_ret, key2_ret;
+	int		key1_ret, key2_ret,key3_ret,key4_ret;
 	char		key,key2,key3,key4;
-	struct pollfd	key_ev[1],key2_ev[4];
+	struct pollfd	key_ev[1],key2_ev[1],key3_ev[1],key4_ev[1];
 
 	int		j = 0;
 
@@ -39,7 +40,7 @@ int main()
 	int     dot_fd;
 	char    data, val;
 	int     number, len, i, a, b, k;
-	int 	size = 0, n = 0, m = 0, time = 0;
+	int 	size = 0, size2=0, size3=0, n = 0, m = 0, time = 0;
 	clock_t start, end;
 	char    dot_values[10][8] = {
 		{0xFF, 0xFF, 0x00, 0x7E, 0x7E, 0x00, 0xFF, 0xFF},               //0
@@ -114,28 +115,40 @@ int main()
 	int thread_state1,thread_state2,thread_state3;
 	pthread_t sens1, sens2, sens3;
 	void *sens1_ret, *sens2_ret, *sens3_ret;
+	dot_fd = open(DOT_FILE_NAME, O_RDWR);
+	write(dot_fd, &dot_char[4], sizeof(char));
 	while(mac_state == 1){
 	thread_state1 = pthread_create (&sens1, NULL, thread_sens1 , NULL);
 	thread_state2 = pthread_create (&sens2, NULL, thread_sens2 , NULL);
 	thread_state3 = pthread_create (&sens3, NULL, thread_sens3 , NULL);
 	write(mot_fd, &mot_data, sizeof(char));
+	write(dot_fd, &dot_char[4], sizeof(char));
+	pthread_join(sens1, &sens1_ret);
+	pthread_join(sens2, &sens2_ret);
+	pthread_join(sens3, &sens3_ret);
 	}
+	
 	mot_data = 0;
 	write(mot_fd, &mot_data, sizeof(char));
 	
 	// thread end
 	// dot matrix print start
 
-	dot_fd = open(DOT_FILE_NAME, O_RDWR);
 	if (dot_fd < 0)
 	{
 		fprintf(stderr, "Can't open %s\n", DOT_FILE_NAME);
 		return -1;
 	}
 
-	printf("mac %d ", mac_state);
+	printf("mac %d\n", mac_state);
 	while (mac_state == 2)
 	{
+		puts("1key is print machine off ");
+		puts("2key is print total money");
+		puts("3key is print the number of each coin");
+		puts("4key is print the number of total coin");
+		puts("key please");
+
 		key2_ev[0].fd		= key_fd;
 		key2_ev[0].events	= POLLIN;	// waiting read
 		key2_ev[1].fd		= key2_fd;
@@ -144,61 +157,68 @@ int main()
 		key2_ev[2].events	= POLLIN;	// waiting read
 		key2_ev[3].fd		= key4_fd;
 		key2_ev[3].events	= POLLIN;	// waiting read
-	
-		key2_ret = poll(key2_ev, 4, 1000);		// event waiting
+		
+		key2_ret = poll(key2_ev, 4, 1000000);		// event waiting
+		
+		
 
 		if (key2_ret < 0)
 		{
 			fprintf(stderr, "Poll error\n");
 			exit(0);
 		}
-
 		if (key2_ret == 0)
 		{
-			puts("1key is print machine off ");
-			puts("2key is print total money");
-			puts("3key is print the number of each coin");
-			puts("4key is print the number of total coin");
-			puts("key please");
-			while(key2_ret == 1);
+			puts("please key input\n");
 		}
+	////////////////////////////////////////
+		if (key2_ev[0].revents & POLLIN)
+		{
+			puts("machine off");
+			break;
+		}
+
 		
 		if (key2_ev[1].revents & POLLIN)
 		{
-				key2_ret = poll(key_ev, 4, 1000);
+				char	*arra ;
+				char	*value_arra ;
+				
+			//	key2_ret = poll(key_ev, 4, 1000);
 				puts("total money ");
-				m = 0, n = 0, size = 0
+				m = 0, n = 0, size = 0;
 				number = (500 * EA500) + (100 * EA100) + (50 * EA50);
-				len = number;
+				len = number; //1250
 				
 				do{
-				len = (len / 10);
-				size ++;	
+				len = (len / 10); //3
+				size ++;	//4
 				} while (len > 0);
 				
-				char	*arra = (char*)malloc(sizeof(char)*(size));
+				arra= (char*)malloc(sizeof(char)*(size));// 0 0 0 0
 	
 				do{
-				a = number % 10;
+				a = number % 10; 
 				b = number / 10;
 				number = b;
-				arra[n] = a;
-				n++;
+				arra[n] = a;// 1 2 5 0
+				n++; // 4
 					} while (b!=0);
 
-				n = n-1;
+				n = n-1;  //n 3
 	
-				char	*value_arra = (char*)malloc(sizeof(char)*8*(size+2));
+				value_arra = (char*)malloc(sizeof(char)*8*(size+3)); // 1250 size 4       1111 1111t /1111 1111 : /1111 1111 1/1111 11112 /1111 1111 5/1111 1111 0 /1111 1111w
 				
 				for(i=0; i<8; i++){
 					value_arra[m] = dot_char[0][i];  // T print store
-					m++;
+					m++; //8
 				}
-				
+
 				for(i=0; i<8; i++){
 					value_arra[m] = dot_char[2][i];  // : print store
-					m++;
+					m++; //16
 				}
+				
 				
 				while(n>=0)
 				{
@@ -210,16 +230,18 @@ int main()
 				n--;
 				}
 				
+				
 				for(i=0; i<8; i++){
 					value_arra[m] = dot_char[3][i];  // W print store
 					m++;
 				}
 				
 				
-				while (key2_ret == 0)
-				{
+				
+				//do
+				//{
 					for(i =0; i<m-7; i++){
-						while(time < 600000){
+						while(time < 100000){
 							start = clock();
 							write(dot_fd, &value_arra[i], sizeof(char));
 							end = clock();
@@ -227,16 +249,21 @@ int main()
 						}
 						time = 0;
 					}
-				}
-		}
-		free(arra);
-		free(value_arra);	
+				//} while (key2_ret == 0 && !(key2_ev[1].revents & POLLIN));
+				
+					
+				free(arra);
+				free(value_arra);	
+		}	
 		
-		
+
 		if (key2_ev[2].revents & POLLIN)
 		{
-			
-				key2_ret = poll(key_ev, 4, 1000);
+				
+				char	*arrb1;
+				char	*arrb2;
+				char	*arrb3;
+				char	*value_arrb;
 				puts("the number of each coin ");	  // each coin
 				
 				// 500 input
@@ -248,8 +275,34 @@ int main()
 				size ++;	
 				} while (len > 0);
 				
-				char	*arrb1 = (char*)malloc(sizeof(char)*(size));
-	
+				arrb1 = (char*)malloc(sizeof(char)*(size));
+
+				n = 0, size2 = 0;
+				number = EA100;
+				len = number;
+				
+				do{
+				len = (len / 10);
+				size2 ++;	
+				} while (len > 0);
+
+				arrb2 = (char*)malloc(sizeof(char)*(size2));
+
+				n = 0, size3 = 0;
+				number = EA50;
+				len = number;
+				
+				do{
+				len = (len / 10);
+				size3 ++;	
+				} while (len > 0);
+				
+				arrb3 = (char*)malloc(sizeof(char)*(size3));
+		
+				value_arrb = (char*)malloc(sizeof(char)*8*(size+size2+size3+16));
+			
+				number = EA500;
+
 				do{
 				a = number % 10;
 				b = number / 10;
@@ -259,36 +312,34 @@ int main()
 					} while (b!=0);
 
 				n = n-1;
-	
-				char	*value_arrb = (char*)malloc(sizeof(char)*8*(size+16));
-				
+
 				for(i=0; i<8; i++){
-					value_arrb[m] = dot_char[1][i];  // c print store
+					value_arrb[m] = dot_char[1][i];  // c print store	1
 					m++;
 				}
 				
 				for(i=0; i<8; i++){
-					value_arrb[m] = dot_char[2][i];  // : print store
+					value_arrb[m] = dot_char[2][i];  // : print store	2
 					m++;
 				}
 				
 				for(i=0; i<8; i++){
-					value_arrb[m] = dot_value[5][i];  // 5 print store
+					value_arrb[m] = dot_values[5][i];  // 5 print store  	3
 					m++;
 				}
 				
 				for(i=0; i<8; i++){
-					value_arrb[m] = dot_value[0][i];  // 0 print store
+					value_arrb[m] = dot_values[0][i];  // 0 print store	4
 					m++;
 				}
 				
 				for(i=0; i<8; i++){
-					value_arrb[m] = dot_value[0][i];  // 0 print store
+					value_arrb[m] = dot_values[0][i];  // 0 print store	5
 					m++;
 				}
 				
 				for(i=0; i<8; i++){
-					value_arrb[m] = dot_char[2][i];  // : print store
+					value_arrb[m] = dot_char[2][i];  // : print store	6
 					m++;
 				}			
 				
@@ -303,21 +354,22 @@ int main()
 				}
 				
 				for(i=0; i<8; i++){
-					value_arrb[m] = dot_value[4][i];  // NULL print store
+					value_arrb[m] = dot_char[4][i];  // NULL print store	7
 					m++;
 				}
 	
 				// 100 input
-				n = 0, size = 0;
-				number = EA500;
+				n = 0;
+				number = EA100;
+/*				
 				len = number;
 				
 				do{
 				len = (len / 10);
-				size ++;	
+				size2 ++;	
 				} while (len > 0);
-				char	*arrb2 = (char*)malloc(sizeof(char)*(size));
-				
+				arrb2 = (char*)malloc(sizeof(char)*(size2));
+*/
 				do{
 				a = number % 10;
 				b = number / 10;
@@ -329,22 +381,22 @@ int main()
 				n = n-1;
 				
 				for(i=0; i<8; i++){
-					value_arrb[m] = dot_value[1][i];  // 1 print store
+					value_arrb[m] = dot_values[1][i];  // 1 print store	8
 					m++;
 				}
 				
 				for(i=0; i<8; i++){
-					value_arrb[m] = dot_value[0][i];  // 0 print store
+					value_arrb[m] = dot_values[0][i];  // 0 print store	9
 					m++;
 				}
 				
 				for(i=0; i<8; i++){
-					value_arrb[m] = dot_value[0][i];  // 0 print store
+					value_arrb[m] = dot_values[0][i];  // 0 print store	10
 					m++;
 				}
 				
 				for(i=0; i<8; i++){
-					value_arrb[m] = dot_char[2][i];  // : print store
+					value_arrb[m] = dot_char[2][i];  // : print store	11
 					m++;
 				}			
 				
@@ -359,21 +411,13 @@ int main()
 				}
 				
 				for(i=0; i<8; i++){
-					value_arrb[m] = dot_value[4][i];  // NULL print store
+					value_arrb[m] = dot_char[4][i];  // NULL print store	12
 					m++;
 				}
 	
 				// 50 input
-				n = 0, size = 0;
-				number = EA500;
-				len = number;
-				
-				do{
-				len = (len / 10);
-				size ++;	
-				} while (len > 0);
-				
-				char	*arrb3 = (char*)malloc(sizeof(char)*(size));
+				n = 0;
+				number = EA50;
 				
 				do{
 				a = number % 10;
@@ -387,17 +431,17 @@ int main()
 	
 				
 				for(i=0; i<8; i++){
-					value_arrb[m] = dot_value[5][i];  // 5 print store
+					value_arrb[m] = dot_values[5][i];  // 5 print store	13
 					m++;
 				}
 				
 				for(i=0; i<8; i++){
-					value_arrb[m] = dot_value[0][i];  // 0 print store
+					value_arrb[m] = dot_values[0][i];  // 0 print store	14
 					m++;
 				}
 				
 				for(i=0; i<8; i++){
-					value_arrb[m] = dot_char[2][i];  // : print store
+					value_arrb[m] = dot_char[2][i];  // : print store	15
 					m++;
 				}			
 				
@@ -412,34 +456,36 @@ int main()
 				}
 				
 				for(i=0; i<8; i++){
-					value_arrb[m] = dot_value[4][i];  // NULL print store
+					value_arrb[m] = dot_char[4][i];  // NULL print store	16
 					m++;
 				}
 	
-				while (key2_ret == 0)
-				{
+			//	while (key2_ret == 0)
+			//	{
 					for(i =0; i<m-7; i++){
-						while(time < 600000){
+						while(time < 100000){
 							start = clock();
-							write(dot_fd, &value_arr[i], sizeof(char));
+							write(dot_fd, &value_arrb[i], sizeof(char)); 
 							end = clock();
 							time += (int)(end - start);			
 						}
 						time = 0;
 					}
-				}		
+			//	}	
+				free(arrb1);
+				free(arrb2);
+				free(arrb3);
+				free(value_arrb);		
 		}
-		free(arrb1);
-		free(arrb2);
-		free(arrb3);
-		free(value_arrb);
-				
-				
+			
+	
 		if (key2_ev[3].revents & POLLIN)
 		{
-				key2_ret = poll(key_ev, 4, 1000);
+						
+				char	*arrc;
+				char	*value_arrc;		
 				puts("the number of total coin ");
-				m = 0, n = 0, size = 0
+				m = 0, n = 0, size = 0;
 				number = EA500 + EA100 + EA50;
 				len = number;
 				
@@ -448,7 +494,7 @@ int main()
 				size ++;	
 				} while (len > 0);
 				
-				char	*arrc = (char*)malloc(sizeof(char)*(size));
+				arrc = (char*)malloc(sizeof(char)*(size));
 	
 				do{
 				a = number % 10;
@@ -460,20 +506,20 @@ int main()
 
 				n = n-1;
 	
-				char	*value_arrc = (char*)malloc(sizeof(char)*8*(size+3));
+				value_arrc = (char*)malloc(sizeof(char)*8*(size+4));
 				
 				for(i=0; i<8; i++){
-					value_arrc[m] = dot_char[0][i];  // T print store
+					value_arrc[m] = dot_char[0][i];  // T print store	1
 					m++;
 				}
 				
 				for(i=0; i<8; i++){
-					value_arrc[m] = dot_char[1][i];  // C print store
+					value_arrc[m] = dot_char[1][i];  // C print store	2
 					m++;
 				}
 				
 				for(i=0; i<8; i++){
-					value_arrc[m] = dot_char[2][i];  // : print store
+					value_arrc[m] = dot_char[2][i];  // : print store	3
 					m++;
 				}
 				
@@ -488,15 +534,15 @@ int main()
 				}
 				
 				for(i=0; i<8; i++){
-					value_arrc[m] = dot_char[3][i];  // W print store
+					value_arrc[m] = dot_char[4][i];  // null print store	4
 					m++;
 				}
 				
 				
-				while (key2_ret == 0)
-				{
+			//	while (key2_ret == 0)
+			//	{
 					for(i =0; i<m-7; i++){
-						while(time < 600000){
+						while(time < 100000){
 							start = clock();
 							write(dot_fd, &value_arrc[i], sizeof(char));
 							end = clock();
@@ -504,16 +550,14 @@ int main()
 						}
 						time = 0;
 					}
-				}
+			//	}
+				free(arrc);
+				free(value_arrc);
+				
 		}
-		free(arrc);
-		free(value_arrc);	
+
+
 		
-		if (key2_ev[0].revents & POLLIN)
-		{
-			puts("machine off");
-			break;
-		}
 	}
 	close(key_fd);
 	close(key2_fd);
@@ -634,7 +678,4 @@ void *thread_sens3(void *arg)
 		}		
 	}
 }
-
-
-
 
